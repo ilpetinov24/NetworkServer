@@ -145,7 +145,7 @@ public:
             exit(-4);
         }
 
-        cout << "Socket was created\n";
+        cout << "Socket was created\n\n";
     }
 
     
@@ -182,8 +182,12 @@ public:
             
             if (err == -1) {
                 if (errno == EINTR) { // Если прерван сигналом
-                    if (wasSigHup) wasSigHup = 0; // сбрасываем флаг
-                    continue; // начинаем заново
+                    if (wasSigHup)
+                    {
+                        cout << "\n\nSIGHUP received!" << endl;
+                        wasSigHup = 0; // сбрасываем флаг
+                        continue;
+                    } // начинаем заново
                 } else break;
             }
 
@@ -221,18 +225,18 @@ private:
 
 
     void acceptConnection() {
-        sockaddr_in clientAddr{};
-        socklen_t clientLen = sizeof(clientAddr);
+        sockaddr_in clientAddress{};
+        socklen_t clientLength = sizeof(clientAddress);
         
 
         int clientSocket = accept(serverSocket, 
-                                (sockaddr*)&clientAddr, 
-                                &clientLen);
+                                (sockaddr*)&clientAddress, 
+                                &clientLength);
         
         if (clientSocket < 0) {
 
             if (errno == EINTR) { // Прерван сигналом
-
+                cout << "Accept interrupted by signal...\n";
                 return;
             }
             perror("accept failed");
@@ -241,12 +245,13 @@ private:
         
         // Получаем IP-адрес клиента
         char clientIp[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, sizeof(clientIp));
+        inet_ntop(AF_INET, &clientAddress.sin_addr, clientIp, sizeof(clientIp));
         
-        cout << "New client connected: " 
-            << clientIp << ":" << ntohs(clientAddr.sin_port)
-            << " (fd: " << clientSocket << ")" << endl;
+        cout << "\n\nNew client connected: \n";
         
+        cout << "IP: " << clientIp << ":" << htons(clientAddress.sin_port) << endl;
+        cout << "FD: " << clientSocket << endl; 
+
         addClient(clientSocket);
         
         const char* welcomeMessage = "Welcome!\n";
@@ -268,14 +273,19 @@ private:
                 if (bytes > 0) {
                     buffer[bytes] = '\0';
                     
-                    cout << "Received from client " << clientFd 
-                        << " (" << bytes << " bytes): " << buffer;
+                    string data(buffer, bytes);
+
+                    cout << "\n\nReceived from client FD: " << clientFd << endl;
+                    cout << "Bytes: " << bytes << endl;
+                    cout << "Data: " << data << endl;
                     
                     // Эхо-ответ клиенту
                     send(clientFd, buffer, bytes, 0);
                     
                 } else if (bytes == 0) {
-                    cout << "Client disconnected (fd: " << clientFd << ")" << endl;
+                    cout << "Client disconnected!\n";
+                    cout << "FD: " << clientFd << endl;
+
                     clientsToRemove.push_back(clientFd);
                     
                 } else {
@@ -287,9 +297,8 @@ private:
             }
         }
         
-        for (int clientFd : clientsToRemove) {
+        for (int clientFd : clientsToRemove)
             deleteClient(clientFd);
-        }
     }
 
 };
@@ -306,7 +315,7 @@ int main(int argc, char** argv) {
 
     cout << "Network Server" << endl;
     cout << "Starting server on port " << port << endl;
-
+    cout << "Server PID: " << getpid() << "\n\n";
 
     NetworkServer server(port);
 
@@ -319,7 +328,7 @@ int main(int argc, char** argv) {
     server.start(); 
 
 
-    cout << "Server stopped" << endl;
+    cout << "Server stopped!" << endl;
 
     return 0;
 }
