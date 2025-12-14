@@ -1,1 +1,1 @@
-/home/ilya/develop/kernel/hello-1/tsulab.o
+/home/ilya/develop/kernel/tsulab/tsulab.o

@@ -1,22 +1,30 @@
+/* Сколько дней мы наслаждаемся тем фактом, что судный день из Т2 еще не настал. */
 #include <linux/init.h>    // Для макросов
-#include <linux/kernel.h>  //
+#include <linux/kernel.h>  
 #include <linux/module.h>
 #include <linux/proc_fs.h> // Для работы с файловой системой /proc
 #include <linux/uaccess.h> // Для копирования
 #include <linux/version.h> // Для проверки версии ядра
+#include <linux/time.h>    // Для работы со временем
 
 #define procfs_name "tsu"
 
 static struct proc_dir_entry *our_proc_file = NULL;
 
-
 static ssize_t procfile_read(struct file *filePointer, char __user *buffer,
                              size_t buffer_length, loff_t *offset)
 {
-    char s[6] = "Tomsk\n";
-    ssize_t strLen = sizeof(s);
+    time64_t nowTime = ktime_get_real_seconds();
 
-    if (*offset >= strLen || copy_to_user(buffer, s, strLen)) {
+    // 27 августа 1997 года. 00:07:14 UTC \\ 00:02:14 EST
+    time64_t judgementDay = 872810040;
+    
+    uint64_t days = (nowTime - judgementDay) / (60 * 60 * 24);
+
+    char msg[50];
+    ssize_t strLen = snprintf(msg, sizeof(msg), "How many days have passed: %llu", days);
+
+    if (*offset >= strLen || copy_to_user(buffer, msg, strLen)) {
         pr_info("copy_to_user failed\n");
         return 0;
     }
@@ -76,4 +84,4 @@ module_exit(procFsExit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Petinov Ilya");
-MODULE_DESCRIPTION("Laboratory work number 3. Operating systems.");
+MODULE_DESCRIPTION("Laboratory work number 4. Operating systems.");
