@@ -16,8 +16,8 @@ static ssize_t procfile_read(struct file *filePointer, char __user *buffer,
 {
     time64_t nowTime = ktime_get_real_seconds();
 
-    // 29 августа 1997 года. 00:07:14 UTC \\ 00:02:14 EST
-    time64_t judgementDay = 872810040;
+    // 29 августа 1997 года. 07:14:00 GMT \\ 02:14:00 EST
+    time64_t judgementDay = 872838840;
     
     uint64_t days = (nowTime - judgementDay) / (60 * 60 * 24);
 
