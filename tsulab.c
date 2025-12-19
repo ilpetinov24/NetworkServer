@@ -21,7 +21,7 @@ static ssize_t procfile_read(struct file *filePointer, char __user *buffer,
     
     uint64_t days = (nowTime - judgementDay) / (60 * 60 * 24);
 
-    char msg[50];
+    char msg[100];
     ssize_t strLen = snprintf(msg, sizeof(msg), "How many days have passed: %llu", days);
 
     if (*offset >= strLen || copy_to_user(buffer, msg, strLen)) {
